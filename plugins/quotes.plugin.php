@@ -64,7 +64,7 @@ final class Quotes extends SilverBotPlugin
         if(date('H') == $this->_hour) {
             $limited = false;
             if($this->_hourcount == $this->_getSayLimit()) {
-                $this->bot->reply('I\'m sorry there is only so much love and hate one bot can have');
+                $this->bot->reply('I\'m sorry there is only so much quoting one bot can do in an hour');
                 return false;
             }
 
