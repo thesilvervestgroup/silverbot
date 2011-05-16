@@ -12,7 +12,7 @@ function __autoload($class_name) {
             return false;
         }
 
-        if(@in_array($class_name, $config['plugins']) !== true) {
+        if(!empty($config['plugins']) && @in_array($class_name, $config['plugins']) !== true) {
             print "skipping $class_name\n";
             return ;
         }
