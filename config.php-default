@@ -10,7 +10,7 @@ $config = array(
 	'channels' => array(
 		'#silverbot',
 	),
+    // Leave plugins empty to discover and load ALL
     'plugins' => array(
-        'channel',
     ),
 );
