@@ -1,0 +1,11 @@
+<?php
+$faces =
+    array(
+        'nick' => 
+            array ('http://www.yoururl.com/image.jpg'),
+        'nick2' =>
+            array ('http://www.yoururl.com/image.jpg'),
+        'misc' =>
+            array('http://fc02.deviantart.net/fs47/f/2009/211/0/0/Rape_Face_by_rogerrog.jpg',
+            'http://i36.tinypic.com/r8rqd0.jpg', 'http://www.starzlife.com/wp-content/uploads/2009/08/macaulay-culkin1.jpg')
+    );
