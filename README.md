@@ -7,7 +7,10 @@ SilverBot is a simple IRC bot framework written in PHP. It is crazy-easy to use 
 
 Usage
 -----
-Download the code, edit as needed (it's pretty well commented), and run the bot.
+1. Download the code
+2. Edit as needed (it's pretty well commented)
+3. Copy config.php-default to config.php and make changes
+4. Run the bot.
     php bot.php
 
 License
