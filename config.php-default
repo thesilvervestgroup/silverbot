@@ -8,4 +8,7 @@ $config = array(
 	'channels' => array(
 		'#silverbot',
 	),
+    'plugins' => array(
+        'channel',
+    ),
 );
