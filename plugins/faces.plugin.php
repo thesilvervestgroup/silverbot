@@ -1,7 +1,7 @@
 <?php
 
 /**
- * RapeFace 
+ * Face 
  * 
  * @uses SilverBotPlugin
  * @final
