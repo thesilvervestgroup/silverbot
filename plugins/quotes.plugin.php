@@ -14,9 +14,10 @@ final class Quotes extends SilverBotPlugin
 {
 	public function __construct()
 	{
-		$this->_lovequotes  = split("\n", $this->_getLoveData());
-		$this->_hatequotes  = split("\n", $this->_getHateData());
-		$this->_flirtquotes = split("\n", $this->_getFlirtData());
+		$this->_lovequotes   = split("\n", $this->_getLoveData());
+		$this->_hatequotes   = split("\n", $this->_getHateData());
+		$this->_flirtquotes  = split("\n", $this->_getFlirtData());
+		$this->_archerquotes = split("\n", $this->_getArcherData());
 		$this->_hourcount = 0; // this is used to limit the number of love/hate per hour
 		$this->_hour = date('H');
 	}
@@ -34,6 +35,11 @@ final class Quotes extends SilverBotPlugin
     public function chn_love($data)
     {
         $this->_randQuote($data, $this->_lovequotes);
+	}
+
+    public function chn_archer($data)
+    {
+        $this->_randQuote($data, $this->_archerquotes);
 	}
 
     protected function _randQuote($data, array $seed)
@@ -85,6 +91,11 @@ final class Quotes extends SilverBotPlugin
     protected function _getFlirtData()
     {
         return file_get_contents($this->getDataDirectory(). 'flirt');
+    }
+
+    protected function _getArcherData()
+    {
+        return file_get_contents($this->getDataDirectory(). 'archer');
     }
 
     protected function _getSayLimit()
