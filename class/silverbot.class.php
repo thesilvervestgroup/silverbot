@@ -182,7 +182,7 @@ class SilverBot {
 
 	public function addPlugin($name) {
 		if (!class_exists($name)) {
-			print "ERROR: Could not load plugin '$name'\n";
+            print "WARNING: '$name' not loaded. It might not be enabled.\n";
 			return;
 		}
 
