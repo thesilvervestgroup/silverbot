@@ -13,4 +13,5 @@ $config = array(
     // Leave plugins empty to discover and load ALL
     'plugins' => array(
     ),
+    'oper' => '',
 );

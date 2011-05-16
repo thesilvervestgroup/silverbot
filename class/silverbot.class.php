@@ -45,6 +45,8 @@ class SilverBot {
 		}
 		$this->send("USER {$this->config['nick']} - - :{$this->config['name']}");
 		$this->send("NICK {$this->config['nick']}");
+        if(isset($this->config['oper']) && !empty($this->config['oper']))
+            $this->send("OPER " . $this->config["oper"]);
 		
 		// process the connect handlers
 		while (!feof($this->socket)) {
