@@ -138,5 +138,9 @@ abstract class SilverBotPlugin {
 			'public'  => $pub
 		);
 	}
-}
 
+    protected function getDataDirectory()
+    {
+        return 'plugins/data/'; // relative to bot.php
+    }
+}
