@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * SilverBot 
+ * 
+ * @package 
+ * @version $id$
+ * @copyright 
+ * @author The Silvervest Group
+ * @license 
+ */
 class SilverBot {
 	protected $socket;
 	protected $config = array();
