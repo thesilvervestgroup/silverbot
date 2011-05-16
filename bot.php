@@ -1,18 +1,9 @@
 <?php
+if(file_exists('config.php') !== true)
+    die("Doh! It looks like you haven't created your own config.php file. Please copy config.php-default to config.php and make your changes");
 
 require_once('bootstrap.php');
-
-$config = array( 
-	'server' => 'irc.example.com',
-	'port' => 6667,
-	'nick' => 'silverbot',
-	'name' => 'silverbot',
-	'pass' => '',
-	'channels' => array(
-		'#silverbot',
-	),
-);
+require_once('config.php');
 
 $bot = new SilverBot($config);
 $bot->connect();
-
