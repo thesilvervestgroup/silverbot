@@ -1,7 +1,5 @@
 <?php
 
-define('DEBUG', true);
-
 function __autoload($class_name) {
     global $config;
 	$filename = 'class/'.strtolower($class_name).'.class.php';

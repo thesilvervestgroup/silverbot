@@ -1,4 +1,6 @@
 <?php
+define('DEBUG', false);
+
 $config = array( 
 	'server' => 'irc.example.com',
 	'port' => 6667,
