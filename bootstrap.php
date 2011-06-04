@@ -1,6 +1,6 @@
 <?php
 
-define('DEBUG', true);
+define('DEBUG', false);
 
 function __autoload($class_name) {
 	$filename = 'class/'.strtolower($class_name).'.class.php';

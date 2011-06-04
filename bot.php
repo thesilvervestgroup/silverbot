@@ -3,19 +3,18 @@
 require_once('bootstrap.php');
 
 $config = array( 
-	'server' => 'irc.austnet.org',
+	'server' => 'irc.example.com',
 	'port' => 6667,
-	'nick' => 'snacro',
-	'name' => 'snacro',
+	'nick' => 'silverbot',
+	'name' => 'silverbot',
 	'pass' => '',
 	'channels' => array(
-		'#@home',
+		'#silverbot',
 	),
 );
 
 $bot = new SilverBot($config);
 $bot->addPlugin('Auth'); // should probably get loaded first (though doesn't really matter)
 $bot->addPlugin('Channel');
-$bot->addPlugin('Snacro');
 $bot->connect();
 
