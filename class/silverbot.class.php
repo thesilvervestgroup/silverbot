@@ -32,6 +32,12 @@ class SilverBot {
 		// process the connect handlers
 		while (!feof($this->socket)) {
 			$incoming = trim(fgets($this->socket));
+            if (DEBUG) echo $incoming . "\n";
+            //reply to any pings that happen before the motd (some servers do this and refuse to this and refuse to send the MOTD until you pong)
+			if (substr($incoming, 0, 6) == 'PING :') {
+				$this->send('PONG :' . substr($incoming, 6));
+				continue;
+			}
 			$parts = explode(' ', $incoming);
 			// 376 and 442 are end of motd or motd not found respectively
 			// which is indicative of the connect process completing
@@ -79,7 +85,11 @@ class SilverBot {
 				continue;
 			}
 			$this->handle($incoming);
-			usleep(100000); // because we're non-blocking
+            //process other stuff until we see something on the stream to read
+            while(!stream_socket_recvfrom($this->socket, 8, STREAM_PEEK)) {
+                $this->processTimers();
+    			usleep(10000); // because we're non-blocking
+            }
 		}
 	}
 	
@@ -170,9 +180,17 @@ class SilverBot {
 		$this->$name =& $this->plugins[$plugname]['plugin'];
 		print "Loaded plugin '$plugname'\n";
 	}
+
+    protected function processTimers()
+    {
+		foreach ($this->plugins as $plugname=>$plugin) {
+            $plugin["plugin"]->processTimers();
+		}
+    }
 	
 	protected function callPublic($trigger, $command, $data) {
 		foreach ($this->plugins as $plugname=>$plugin) {
+     		$plugin['plugin']->pub($data);
 			if ($plugin['plugin']->trigger !== $trigger) continue;
 			foreach ($plugin['commands']['public'] as $name) {
 				if ($name === $command) { // match!
@@ -186,6 +204,7 @@ class SilverBot {
 	
 	protected function callPrivate($trigger, $command, $data) {
 		foreach ($this->plugins as $plugname=>$plugin) {
+    		$plugin['plugin']->prv($data);
 			if ($plugin['plugin']->trigger !== $trigger) continue;
 			foreach ($plugin['commands']['private'] as $name) {
 				if ($name === $command) { // match!
@@ -199,6 +218,7 @@ class SilverBot {
 	
 	protected function callChannel($trigger, $command, $data) {
 		foreach ($this->plugins as $plugname=>$plugin) {
+    		$plugin['plugin']->chn($data);
 			if ($plugin['plugin']->trigger !== $trigger) continue;
 			foreach ($plugin['commands']['channel'] as $name) {
 				if ($name === $command) { // match!
