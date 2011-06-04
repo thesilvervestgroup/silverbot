@@ -7,10 +7,13 @@ class SilverBot {
 	protected $channels = array();
 
 	public function __construct($config) {
-		$this->config = $config;
-		
+		$this->config = $config;		
+
 		register_shutdown_function(array($this, '__destruct'));
+		$this->discoverPlugins();
 	}
+
+
 	
 	public function __destruct() {
 		if ($this->socket) {
@@ -18,6 +21,7 @@ class SilverBot {
 		}
 	}
 	
+
 	// basic IRC network-y type functions
 	public function disconnect($message = '') {
 		$this->send("QUIT :$message");
@@ -26,6 +30,10 @@ class SilverBot {
 	
 	public function connect() {
 		$this->socket = fsockopen($this->config['server'], $this->config['port']);
+		if ($this->socket === false) {
+			print("ERROR: unable to connect to {$this->config['server']}:{$this->config['port']}\n");
+			return;
+		}
 		$this->send("USER {$this->config['nick']} - - :{$this->config['name']}");
 		$this->send("NICK {$this->config['nick']}");
 		
@@ -154,9 +162,23 @@ class SilverBot {
 	// end basic IRC funcs
 	
 	// plugin handling
+	private function discoverPlugins() {
+		$pluginFiles = glob("plugins/*.plugin.php");
+       	foreach($pluginFiles as $pluginFile) {
+       		$classname = basename($pluginFile, ".plugin.php");
+       		$this->addPlugin($classname);
+		}   
+	}
+
+
 	public function addPlugin($name) {
 		if (!class_exists($name)) {
 			print "ERROR: Could not load plugin '$name'\n";
+			return;
+		}
+
+		if (get_parent_class($name) !== "SilverBotPlugin") {
+			print "ERROR: $name does not inherit from SilverBotPlugin";
 			return;
 		}
 		
