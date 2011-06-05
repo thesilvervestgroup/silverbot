@@ -14,7 +14,5 @@ $config = array(
 );
 
 $bot = new SilverBot($config);
-$bot->addPlugin('Auth'); // should probably get loaded first (though doesn't really matter)
-$bot->addPlugin('Channel');
 $bot->connect();
 
