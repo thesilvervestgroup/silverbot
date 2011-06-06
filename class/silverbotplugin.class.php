@@ -141,6 +141,6 @@ abstract class SilverBotPlugin {
 
     protected function getDataDirectory()
     {
-        return 'plugins/data/'; // relative to bot.php
+        return 'plugins/'; // relative to bot.php
     }
 }
