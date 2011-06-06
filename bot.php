@@ -1,9 +1,17 @@
 <?php
-if(file_exists('config.php') !== true)
-    die("Doh! It looks like you haven't created your own config.php file. Please copy config.php-default to config.php and make your changes");
+require_once __DIR__.'/bootstrap.php';
 
-require_once('config.php');
-require_once('bootstrap.php');
+$pid = 0;
+if (DAEMON) {
+	$pid = pcntl_fork();
+	if ($pid == -1)
+		die("ERROR: Could not background process!\n");
+}
 
-$bot = new SilverBot($config);
-$bot->connect();
+if ($pid == 0) { // we're either the child fork, or we're not forked at all
+	$bot = new SilverBot($config);
+	$bot->connect();
+}
+
+// exit nicely
+exit(0);
