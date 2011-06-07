@@ -1,0 +1,16 @@
+[SilverBot]
+name=irc.example.com		; server to connect to
+port=6667			; port - 6667 is usually good
+pass=				; if it needs a server password to connect
+nick=silverbot			; bot's nickname
+ident=silverbot			; bot's ident name
+
+[Channel]
+; the bot will automatically join channels in the autojoin array on connect
+autojoin[]=#silverbot
+
+[Auth]
+; setting the owner to your nickname is important, as this is the nickname
+; that the bot will initially respond to when setting up the user access
+; whoever has this nickname on IRC will be able to gain full control!
+owner=

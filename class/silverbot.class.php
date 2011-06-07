@@ -5,9 +5,11 @@ class SilverBot {
 	protected $config = array();
 	protected $plugins = array();
 	protected $channels = array();
+	protected $settings = array();
 
 	public function __construct($config) {
-		$this->config = $config;
+		$this->settings = $config; // full settings array, incl plugin settings
+		$this->config = $config['SilverBot']; // config for the actual bot
 
 		register_shutdown_function(array($this, '__destruct'));
 		$this->discoverPlugins();
@@ -23,21 +25,22 @@ class SilverBot {
 	public function disconnect($message = '') {
 		$this->send("QUIT :$message");
 		fclose($this->socket);
+		exit(0);
 	}
 	
 	public function connect() {
-		$this->socket = fsockopen($this->config['server'], $this->config['port']);
+		$this->socket = fsockopen($this->config['name'], $this->config['port']);
 		if ($this->socket === false) {
-			print "ERROR: unable to connect to {$this->config['server']}:{$this->config['port']}\n";
+			olog("ERROR: unable to connect to {$this->config['server']}:{$this->config['port']}");
 			return;
 		}
-		$this->send("USER {$this->config['nick']} - - :{$this->config['name']}");
+		$this->send("USER {$this->config['nick']} - - :{$this->config['ident']}");
 		$this->send("NICK {$this->config['nick']}");
 		
 		// process the connect handlers
 		while (!feof($this->socket)) {
-			$incoming = trim(fgets($this->socket));
-            if (DEBUG) echo $incoming . "\n";
+			$incoming = rtrim(fgets($this->socket));
+            olog("<== $incoming", LOG_LEVEL_DEBUG);
             //reply to any pings that happen before the motd (some servers do this and refuse to this and refuse to send the MOTD until you pong)
 			if (substr($incoming, 0, 6) == 'PING :') {
 				$this->send('PONG :' . substr($incoming, 6));
@@ -61,7 +64,7 @@ class SilverBot {
 	
 	public function send($data) {
 		if (!$this->socket) return;
-		if (DEBUG) echo " ==> $data\n";
+		olog("==> $data", LOG_LEVEL_DEBUG);
 		fwrite($this->socket, $data . "\r\n");
 	}
 
@@ -83,19 +86,18 @@ class SilverBot {
 		socket_set_blocking($this->socket, false); // so we can do timed events
 		
 		while (!feof($this->socket)) {
-			while (!stream_socket_recvfrom($this->socket, 1, STREAM_PEEK)) { // check if there's data in the pipes
+			while (!$incoming = rtrim(fgets($this->socket))) { // check if there's data in the pipes
 				// nope! so, we need to process plugin timers, then continue sleeping for the remainder of our 100ms pause
 				// this code has been tested to be accurate to about 0.5-1ms (and damnit, that's good enough for me)
 				$start = microtime(true);
 				$this->processTimers();
 				$end = microtime(true);
-				$diff = (100000 - (($end - $start) * 1000000)) * 1.0000005; // add some trial-and-error fuzz
-				usleep($diff);
+				$diff = 100000 - ((($end - $start) * 1000000) * 1.0000005); // add some trial-and-error fuzz
+				if ($diff > 0) usleep($diff);
 			}
 			
 			// looks like we've got data in them-thar pipes
-			$incoming = rtrim(fgets($this->socket));
-			if (DEBUG) echo " <== $incoming\n";
+			olog("<== $incoming", LOG_LEVEL_DEBUG);
 			
 			// play table tennis if necessary
 			if (substr($incoming, 0, 6) == 'PING :') {
@@ -179,34 +181,34 @@ class SilverBot {
 
 	public function addPlugin($name) {
 		if (!class_exists($name)) {
-			print "ERROR: Could not load plugin '$name'\n";
+			olog("ERROR: Could not load plugin '$name'");
 			return;
 		}
 
 		if (get_parent_class($name) !== "SilverBotPlugin") {
-			print "ERROR: $name does not inherit from SilverBotPlugin";
+			olog("ERROR: $name does not inherit from SilverBotPlugin");
 			return;
 		}
 		
 		$plugin = new $name();
 		if (!method_exists($plugin, 'ident') || !method_exists($plugin, 'register')) {
-			print "ERROR: Plugin '$name' isn't a valid plugin\n";
+			olog("ERROR: Plugin '$name' isn't a valid plugin");
 			return;
 		}
 		
 		$plugname = $plugin->ident();
 		if (array_key_exists($plugname, $this->plugins)) {
-			print "ERROR: Plugin '$name' already loaded\n";
+			olog("ERROR: Plugin '$name' already loaded");
 			return;
 		}
 		
 		$commands = $plugin->register();
-		$plugin->setup($this, $this->config);
+		$plugin->setup($this, $this->settings[$name]);
 		
 		$this->plugins[$plugname]['commands'] = $commands;
 		$this->plugins[$plugname]['plugin'] = $plugin;
 		$this->$name =& $this->plugins[$plugname]['plugin'];
-		print "Loaded plugin '$plugname'\n";
+		olog("Loaded plugin '$plugname'", LOG_LEVEL_INFO);
 	}
 
     protected function processTimers() {
