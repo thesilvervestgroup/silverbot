@@ -1,12 +1,20 @@
 <?php
 
-// this plugin is going to have a mixture of camelCase and "lowercase words separated by underscores" functions
-// the non-camelCase functions are specifically for automagic calls and shouldn't be triggered manually
-// these functions should always start with prv_ or pub_ or chn_
-// eg, function prv_foo() indicates that function would be called when a user-to-user PRIVMSG is caught with 'foo' after the trigger
-// eg, function chn_foo() indicates that function would be called when a channel PRIVMSG is caught with 'foo' after the trigger
-// eg, function pub_foo() indicates that function would be called when any PRIVMSG is caught with 'foo' after the trigger
-class SilverBotPlugin {
+/**
+ * SilverBotPlugin 
+ * 
+ * This plugin is going to have a mixture of camelCase and "lowercase words separated by underscores" functions
+ * the non-camelCase functions are specifically for automagic calls and shouldn't be triggered manually
+ * these functions should always start with prv_ or pub_ or chn_
+ * eg, function prv_foo() indicates that function would be called when a user-to-user PRIVMSG is caught with 'foo' after the trigger
+ * eg, function chn_foo() indicates that function would be called when a channel PRIVMSG is caught with 'foo' after the trigger
+ * eg, function pub_foo() indicates that function would be called when any PRIVMSG is caught with 'foo' after the trigger
+ * @abstract
+ * @package 
+ * @version $id$
+ * @author The Silvervest Group
+ */
+abstract class SilverBotPlugin {
 	protected $version = '0.0.1';
 	public $trigger = '!'; // this is the string commands for this plugin will trigger off of
 	protected $bot;	// to store the parent bot, for passing back irc commands
@@ -130,5 +138,9 @@ class SilverBotPlugin {
 			'public'  => $pub
 		);
 	}
-}
 
+    protected function getDataDirectory()
+    {
+        return 'plugins/'; // relative to bot.php
+    }
+}
