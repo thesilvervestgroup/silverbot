@@ -3,13 +3,13 @@
 require_once('bootstrap.php');
 
 $config = array( 
-	'server' => 'irc.example.com',
+	'server' => 'irc.m3rls.com',
 	'port' => 6667,
 	'nick' => 'silverbot',
 	'name' => 'silverbot',
 	'pass' => '',
 	'channels' => array(
-		'#silverbot',
+		'#tsg',
 	),
 );
 

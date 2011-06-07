@@ -7,31 +7,28 @@ class SilverBot {
 	protected $channels = array();
 
 	public function __construct($config) {
-		$this->config = $config;		
+		$this->config = $config;
 
 		register_shutdown_function(array($this, '__destruct'));
 		$this->discoverPlugins();
 	}
-
-
 	
 	public function __destruct() {
 		if ($this->socket) {
 			$this->disconnect('Terminated');
 		}
 	}
-	
 
 	// basic IRC network-y type functions
 	public function disconnect($message = '') {
 		$this->send("QUIT :$message");
 		fclose($this->socket);
-	}	
+	}
 	
 	public function connect() {
 		$this->socket = fsockopen($this->config['server'], $this->config['port']);
 		if ($this->socket === false) {
-			print("ERROR: unable to connect to {$this->config['server']}:{$this->config['port']}\n");
+			print "ERROR: unable to connect to {$this->config['server']}:{$this->config['port']}\n";
 			return;
 		}
 		$this->send("USER {$this->config['nick']} - - :{$this->config['name']}");
@@ -79,25 +76,34 @@ class SilverBot {
 	public function pm($user, $text) {
 		$string = 'PRIVMSG ' . $user . ' :' . $text;
 		$this->send($string);
-	}			
+	}
 
 	// main loop, should only be called from $this->connect()
 	private function main() {
-		socket_set_blocking($this->socket, false);
+		socket_set_blocking($this->socket, false); // so we can do timed events
+		
 		while (!feof($this->socket)) {
-			$incoming = trim(fgets($this->socket));
-			if ($incoming == '') continue;
+			while (!stream_socket_recvfrom($this->socket, 1, STREAM_PEEK)) { // check if there's data in the pipes
+				// nope! so, we need to process plugin timers, then continue sleeping for the remainder of our 100ms pause
+				// this code has been tested to be accurate to about 0.5-1ms (and damnit, that's good enough for me)
+				$start = microtime(true);
+				$this->processTimers();
+				$end = microtime(true);
+				$diff = (100000 - (($end - $start) * 1000000)) * 1.0000005; // add some trial-and-error fuzz
+				usleep($diff);
+			}
+			
+			// looks like we've got data in them-thar pipes
+			$incoming = stream_get_line($this->socket, 4096); // using stream_get_line() over fgets() so we don't need to trim
 			if (DEBUG) echo " <== $incoming\n";
+			
+			// play table tennis if necessary
 			if (substr($incoming, 0, 6) == 'PING :') {
 				$this->send('PONG :' . substr($incoming, 6));
 				continue;
 			}
+
 			$this->handle($incoming);
-            //process other stuff until we see something on the stream to read
-            while(!stream_socket_recvfrom($this->socket, 8, STREAM_PEEK)) {
-                $this->processTimers();
-    			usleep(10000); // because we're non-blocking
-            }
 		}
 	}
 	
@@ -171,7 +177,6 @@ class SilverBot {
 		}
 	}
 
-
 	public function addPlugin($name) {
 		if (!class_exists($name)) {
 			print "ERROR: Could not load plugin '$name'\n";
@@ -204,8 +209,7 @@ class SilverBot {
 		print "Loaded plugin '$plugname'\n";
 	}
 
-    protected function processTimers()
-    {
+    protected function processTimers() {
 		foreach ($this->plugins as $plugname=>$plugin) {
             $plugin["plugin"]->processTimers();
 		}
