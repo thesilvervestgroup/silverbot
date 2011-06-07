@@ -163,11 +163,12 @@ class SilverBot {
 	
 	// plugin handling
 	private function discoverPlugins() {
-		$pluginFiles = glob("plugins/*.plugin.php");
+		$pluginFiles = glob("plugins/*/plugin.php");
        	foreach($pluginFiles as $pluginFile) {
-       		$classname = basename($pluginFile, ".plugin.php");
-       		$this->addPlugin($classname);
-		}   
+       		preg_match('/^plugins\/(.+?)\/plugin\.php$/', $pluginFile, $matches);
+       		list(,$className) = $matches;       		
+       		$this->addPlugin($className);
+		}
 	}
 
 
