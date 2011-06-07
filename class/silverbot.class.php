@@ -94,7 +94,7 @@ class SilverBot {
 			}
 			
 			// looks like we've got data in them-thar pipes
-			$incoming = stream_get_line($this->socket, 4096); // using stream_get_line() over fgets() so we don't need to trim
+			$incoming = rtrim(fgets($this->socket));
 			if (DEBUG) echo " <== $incoming\n";
 			
 			// play table tennis if necessary
