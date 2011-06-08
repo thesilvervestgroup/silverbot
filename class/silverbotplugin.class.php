@@ -139,8 +139,11 @@ abstract class SilverBotPlugin {
 		);
 	}
 
-    protected function getDataDirectory()
-    {
-        return 'plugins/'; // relative to bot.php
+    /**
+     * Returns the directory this plugin should store its data files
+     * Must have trailing slash
+     */
+    protected function getDataDirectory() {
+        return 'plugins/' . get_class($this) . '/'; // relative to bot.php
     }
 }
