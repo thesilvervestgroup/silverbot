@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * SilverBot 
+ * 
+ * @package 
+ * @version $id$
+ * @copyright 
+ * @author The Silvervest Group
+ * @license 
+ */
 class SilverBot {
 	protected $socket;
 	protected $config = array();
@@ -43,6 +52,8 @@ class SilverBot {
 			$this->send("PASS {$this->config['pass']}");
 		$this->send("USER {$this->config['nick']} - - :{$this->config['ident']}");
 		$this->send("NICK {$this->config['nick']}");
+        if(isset($this->config['oper']) && !empty($this->config['oper']))
+            $this->send("OPER " . $this->config["oper"]);
 		
 		// process the connect handlers
 		while (!feof($this->socket)) {
