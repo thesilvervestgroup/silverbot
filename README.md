@@ -7,7 +7,7 @@ SilverBot is a simple IRC bot framework written in PHP. It is crazy-easy to use 
 
 Requirements
 ------------
-* PHP 5.3.0 or higher
+* PHP 5.2.0 or higher
 * Pear Console_CommandLine module
 
 Usage
@@ -23,6 +23,10 @@ Usage
 
     php bot.php --help
 
+Plugins
+-------
+SilverBot supports all kinds of plugins, and there is a separate plugins repository called '[silverbot-plugins](https://github.com/thesilvervestgroup/silverbot-plugins)'
+Plugins live in the 'plugins' directory with your bot, and are automatically loaded upon startup.
 
 License
 -------
