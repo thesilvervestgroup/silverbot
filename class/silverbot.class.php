@@ -16,7 +16,7 @@ class SilverBot {
 	}
 	
 	public function __destruct() {
-		if ($this->socket) {
+		if (isset($this->socket) && $this->socket) {
 			$this->disconnect('Terminated');
 		}
 	}
@@ -25,15 +25,22 @@ class SilverBot {
 	public function disconnect($message = '') {
 		$this->send("QUIT :$message");
 		fclose($this->socket);
+		unset($this->socket);
 		exit(0);
 	}
 	
 	public function connect() {
+		$altnick = false;
+		if ($this->config['ssl'] == true)
+			$this->config['name'] = 'ssl://' . $this->config['name'];
+		olog("Connecting to {$this->config['name']}:{$this->config['port']}...", LOG_LEVEL_INFO);
 		$this->socket = fsockopen($this->config['name'], $this->config['port']);
 		if ($this->socket === false) {
 			olog("ERROR: unable to connect to {$this->config['server']}:{$this->config['port']}");
 			return;
 		}
+		if (!empty($this->config['pass']))
+			$this->send("PASS {$this->config['pass']}");
 		$this->send("USER {$this->config['nick']} - - :{$this->config['ident']}");
 		$this->send("NICK {$this->config['nick']}");
 		
@@ -47,14 +54,29 @@ class SilverBot {
 				continue;
 			}
 			$parts = explode(' ', $incoming);
-			// 376 and 442 are end of motd or motd not found respectively
-			// which is indicative of the connect process completing
-			if ($parts[1] == '376' || $parts[1] == '422') {
-				// process plugin on-connect functions
-				foreach ($this->plugins as $plugname=>$plugin) {
-					$plugin['plugin']->onConnect();
-				}
-				break;
+			
+			switch ($parts[1]) {
+				// 376 and 442 are end of motd or motd not found respectively
+				// which is indicative of the connect process completing
+				case '376':
+				case '422':
+					// process plugin on-connect functions
+					foreach ($this->plugins as $plugname=>$plugin) {
+						$plugin['plugin']->onConnect();
+					}
+					olog("Connected!", LOG_LEVEL_INFO);
+					break 2;
+
+				// 433 is 'nickname already in use' so go to our alternative
+				case '433':
+					if ($altnick == true) {
+						olog("Both primary and alternate nicknames are in use, exiting...");
+						$this->disconnect();
+					}
+					olog("Nickname '{$this->config['nick']}' already in use, trying alternate '{$this->config['alt_nick']}'...", LOG_LEVEL_INFO);
+					$this->send("NICK {$this->config['alt_nick']}");
+					$altnick = true;
+					break;
 			}
 		}
 		

@@ -7,6 +7,9 @@ define('LOG_LEVEL_INFO', 2);
 define('LOG_LEVEL_DEBUG', 3);
 define('DEBUG', LOG_LEVEL_ERROR);
 
+if (!defined('__DIR__')) // for backwards compat
+	define('__DIR__', dirname(__FILE__));
+
 // parse cli arguments
 require_once 'Console/CommandLine.php';
 $parser = new Console_CommandLine();
@@ -64,5 +67,5 @@ function __autoload($class_name) {
 
 // logging either to syslog or to stdout
 function olog($str, $level = LOG_LEVEL_ERROR) {
-	if (DEBUG >= $level) print date('M d H:i:s ') . $argc[0] . '[' . posix_getpid() . ']: ' . $str . "\n";
+	if (DEBUG >= $level) print date('M d H:i:s ') . '[' . posix_getpid() . ']: ' . $str . "\n";
 }

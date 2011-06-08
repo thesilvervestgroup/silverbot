@@ -1,8 +1,10 @@
 [SilverBot]
-name=irc.example.com		; server to connect to
-port=6667			; port - 6667 is usually good
-pass=				; if it needs a server password to connect
+name=irc.example.com	; server to connect to
+port=6667				; port - 6667 is usually good
+ssl=true				; if this is true, remember to set the port appropriately
+pass=					; if it needs a server password to connect
 nick=silverbot			; bot's nickname
+alt_nick=silverbot_alt	; alternate nickname if nick already in use
 ident=silverbot			; bot's ident name
 
 [Channel]
