@@ -146,4 +146,21 @@ abstract class SilverBotPlugin {
     protected function getDataDirectory() {
         return 'plugins/' . get_class($this) . '/'; // relative to bot.php
     }
+    
+    /**
+     * Helper function for plugins to use
+     * Uses curl to HTTP GET a URL and returns the output
+     * string $url - URL to request
+     * boolean $incHeaders - whether to include HTTP Headers with the returned result
+     */
+	protected function curlGet($url, $incHeaders = false) {
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_HEADER, $incHeaders);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		$output = curl_exec($ch);
+		curl_close($ch);
+		return $output;
+	}
+    
 }
