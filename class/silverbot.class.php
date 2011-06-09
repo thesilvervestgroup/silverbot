@@ -236,7 +236,7 @@ class SilverBot {
 		}
 		
 		$commands = $plugin->register();
-		$plugin->setup($this, $this->settings[$name]);
+		$plugin->setup($this, (!empty($this->settings[$name]) ? $this->settings[$name] : array()));
 		
 		$this->plugins[$plugname]['commands'] = $commands;
 		$this->plugins[$plugname]['plugin'] = $plugin;
