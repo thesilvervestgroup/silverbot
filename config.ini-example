@@ -1,18 +1,21 @@
 [SilverBot]
 name=irc.example.com	; server to connect to
 port=6667				; port - 6667 is usually good
-ssl=true				; if this is true, remember to set the port appropriately
+ssl=false				; if this is true, remember to set the port appropriately
 pass=					; if it needs a server password to connect
 nick=silverbot			; bot's nickname
 alt_nick=silverbot_alt	; alternate nickname if nick already in use
 ident=silverbot			; bot's ident name
+reconnect=true			; automatically reconnect if disconnected
 
 [Channel]
 ; the bot will automatically join channels in the autojoin array on connect
+autojoin[]=#example
 autojoin[]=#silverbot
+rejoin_on_kick=true		; whether we should rejoin channels automatically if the bot is kicked out
 
 [Auth]
 ; setting the owner to your nickname is important, as this is the nickname
 ; that the bot will initially respond to when setting up the user access
 ; whoever has this nickname on IRC will be able to gain full control!
-owner=
+owner=ownername

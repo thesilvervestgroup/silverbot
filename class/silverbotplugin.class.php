@@ -37,6 +37,18 @@ abstract class SilverBotPlugin {
 		//
 	}
 	
+	// when it is detected that we were disconnected for
+	// whatever reason (even when bot was told to /quit)
+	public function onDisconnect() {
+		//
+	}
+	
+	// when someone is kicked in a channel the bot is in
+	// can be either the bot, or another person being kicked
+	public function onKick($data) {
+		//
+	}
+	
 	// to perform on-join functions
 	// called when a user joins a channel the bot is in, or the bot joins a channel
 	public function onJoin($data) {

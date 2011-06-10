@@ -15,11 +15,16 @@ class SilverBot {
 	protected $plugins = array();
 	protected $channels = array();
 	protected $settings = array();
+	public $nickname = '';
 
 	public function __construct($config) {
 		$this->settings = $config; // full settings array, incl plugin settings
 		$this->config = $config['SilverBot']; // config for the actual bot
 
+		// fix hostname if we're configured for ssl
+		if ($this->config['ssl'] == true)
+			$this->config['name'] = 'ssl://' . $this->config['name'];
+			
 		register_shutdown_function(array($this, '__destruct'));
 		$this->discoverPlugins();
 	}
@@ -32,6 +37,7 @@ class SilverBot {
 
 	// basic IRC network-y type functions
 	public function disconnect($message = '') {
+		olog('Exiting!', LOG_LEVEL_INFO);
 		$this->send("QUIT :$message");
 		fclose($this->socket);
 		unset($this->socket);
@@ -40,8 +46,6 @@ class SilverBot {
 	
 	public function connect() {
 		$altnick = false;
-		if ($this->config['ssl'] == true)
-			$this->config['name'] = 'ssl://' . $this->config['name'];
 		olog("Connecting to {$this->config['name']}:{$this->config['port']}...", LOG_LEVEL_INFO);
 		$this->socket = fsockopen($this->config['name'], $this->config['port']);
 		if ($this->socket === false) {
@@ -52,6 +56,7 @@ class SilverBot {
 			$this->send("PASS {$this->config['pass']}");
 		$this->send("USER {$this->config['nick']} - - :{$this->config['ident']}");
 		$this->send("NICK {$this->config['nick']}");
+		$this->nickname = $this->config['nick'];
         if(isset($this->config['oper']) && !empty($this->config['oper']))
             $this->send("OPER " . $this->config["oper"]);
 		
@@ -86,6 +91,7 @@ class SilverBot {
 					}
 					olog("Nickname '{$this->config['nick']}' already in use, trying alternate '{$this->config['alt_nick']}'...", LOG_LEVEL_INFO);
 					$this->send("NICK {$this->config['alt_nick']}");
+					$this->nickname = $this->config['alt_nick'];
 					$altnick = true;
 					break;
 			}
@@ -93,6 +99,19 @@ class SilverBot {
 		
 		// now that we're connected, start looping
 		$this->main();
+		
+		
+		// if we got here, it means we were disconnected
+		// notify all plugins that we were disconnected
+		olog('Disconnected...', LOG_LEVEL_INFO);
+		foreach ($this->plugins as $plugname=>$plugin) {
+			$plugin['plugin']->onDisconnect();
+		}
+		// and try to reconnect if we're configured to
+		if ($this->config['reconnect'] == true) {
+			olog('Attempting to reconnect.', LOG_LEVEL_INFO);
+			$this->connect(); // this... might get recursive ???
+		}
 	}
 	
 	public function send($data) {
@@ -175,29 +194,45 @@ class SilverBot {
 					$plugin['plugin']->onJoin($this->processed);
 				}
 				break;
+
+			case 'KICK':
+				// split off who was kicked
+				list($this->processed['kicked'], $this->processed['text']) = explode(' ', $this->processed['text'], 2);
+				foreach ($this->plugins as $plugname=>$plugin) {
+					$plugin['plugin']->onKick($this->processed);
+				}
+
 		}
 	}
 	
 	// processes incoming text into a useful data set
-	protected function process($input) {
-		// process the input first
-		$buffer = explode(" ", $input, 4);
-		$data['username'] = substr($buffer[0], 1, strpos($buffer[0], "!")-1);
-		$a = strpos($buffer[0], "!");
-		$b = strpos($buffer[0], "@");
-		$data['ident'] = substr($buffer[0], $a+1, $b-$a-1);
-		$data['hostname'] = substr($buffer[0], strpos($buffer[0], "@")+1);
-		$data['user_host'] = substr($buffer[0],1);
-		$data['command'] = $buffer[1];
-		if (strpos($buffer[2], '#') === false) // no # means it came from a user, not a channel
+	protected function process($input, $arguments = -1) {
+		// split off the user prefix (if available)
+		if (substr($input, 0, 1) == ':') {
+			list($user, $input) = explode(' ', $input, 2);
+			$data['username'] = substr($user, 1, strpos($user, "!")-1);
+			$a = strpos($user, "!");
+			$b = strpos($user, "@");
+			$data['ident'] = substr($user, $a+1, $b-$a-1);
+			$data['hostname'] = substr($user, strpos($user, "@")+1);
+			$data['user_host'] = substr($user, 1);
+		}
+		
+		// now work on the rest
+		$buffer = preg_split('/ :?/S', $input, $arguments);
+
+		$data['command'] = array_shift($buffer);
+		$source = array_shift($buffer);
+		if (strpos($source, '#') === false) // no # means it came from a user, not a channel
 			$data['source'] = $data['username'];
 		else
-			$data['source'] = $buffer[2];
+			$data['source'] = $source;
 		
 		$data['text'] = '';
-		if (!empty($buffer[3]))
-			$data['text'] = substr($buffer[3], 1);
+		if (!empty($buffer))
+			$data['text'] = implode(' ', $buffer);
 		
+		var_dump($data);
 		return $data;
 	}
 	// end basic IRC funcs
