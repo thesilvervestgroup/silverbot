@@ -232,7 +232,6 @@ class SilverBot {
 		if (!empty($buffer))
 			$data['text'] = implode(' ', $buffer);
 		
-		var_dump($data);
 		return $data;
 	}
 	// end basic IRC funcs
