@@ -170,6 +170,7 @@ abstract class SilverBotPlugin {
 		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_HEADER, $incHeaders);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_USERAGENT, 'Silverbot/1.0 (+https://github.com/thesilvervestgroup/silverbot)');
 		$output = curl_exec($ch);
 		curl_close($ch);
 		return $output;
