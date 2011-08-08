@@ -61,6 +61,11 @@ abstract class SilverBotPlugin {
 		//
 	}
 	
+	// when someone invites the bot into a channel
+	public function onInvite($data) {
+		//
+	}
+	
 	// for autoloading and all that crap
 	public function ident() {
 		return get_class($this) . '-' . $this->version;
