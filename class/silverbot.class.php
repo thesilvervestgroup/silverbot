@@ -57,8 +57,6 @@ class SilverBot {
 		$this->send("USER {$this->config['nick']} - - :{$this->config['ident']}");
 		$this->send("NICK {$this->config['nick']}");
 		$this->nickname = $this->config['nick'];
-        if(isset($this->config['oper']) && !empty($this->config['oper']))
-            $this->send("OPER " . $this->config["oper"]);
 		
 		// process the connect handlers
 		while (!feof($this->socket)) {
@@ -76,6 +74,9 @@ class SilverBot {
 				// which is indicative of the connect process completing
 				case '376':
 				case '422':
+					// become an oper if we can
+					if (!empty($this->config['oper']))
+						$this->send("OPER " . $this->config["oper"]);
 					// process plugin on-connect functions
 					foreach ($this->plugins as $plugname=>$plugin) {
 						$plugin['plugin']->onConnect();
