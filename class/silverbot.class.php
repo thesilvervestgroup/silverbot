@@ -202,7 +202,15 @@ class SilverBot {
 				foreach ($this->plugins as $plugname=>$plugin) {
 					$plugin['plugin']->onKick($this->processed);
 				}
-
+				
+			case 'INVITE':
+				$this->processed['channel'] = $this->processed['text'];
+				unset($this->processed['text']);
+				foreach ($this->plugins as $plugname=>$plugin) {
+					$plugin['plugin']->onInvite($this->processed);
+				}
+				break;
+				
 		}
 	}
 	
