@@ -7,6 +7,7 @@ nick=silverbot			; bot's nickname
 alt_nick=silverbot_alt	; alternate nickname if nick already in use
 ident=silverbot			; bot's ident name
 reconnect=true			; automatically reconnect if disconnected
+time_per_tick=1			; how many seconds between sending next message in the send queue, to prevent flooding
 
 [Channel]
 ; the bot will automatically join channels in the autojoin array on connect

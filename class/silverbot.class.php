@@ -16,6 +16,9 @@ class SilverBot {
 	protected $channels = array();
 	protected $settings = array();
 	public $nickname = '';
+	
+	// data queues
+	private $sendQ = array();
 
 	public function __construct($config) {
 		$this->settings = $config; // full settings array, incl plugin settings
@@ -24,6 +27,12 @@ class SilverBot {
 		// fix hostname if we're configured for ssl
 		if ($this->config['ssl'] == true)
 			$this->config['name'] = 'ssl://' . $this->config['name'];
+			
+		// make sure time_per_tick is right
+		if (!isset($this->config['time_per_tick']) || !is_numeric($this->config['time_per_tick']) || $this->config['time_per_tick'] < 0)
+			$this->config['time_per_tick'] = 10; // one second = 10 loops
+		else
+			$this->config['time_per_tick'] = round($this->config['time_per_tick'] * 10);
 			
 		register_shutdown_function(array($this, '__destruct'));
 		$this->discoverPlugins();
@@ -120,24 +129,34 @@ class SilverBot {
 		olog("==> $data", LOG_LEVEL_DEBUG);
 		fwrite($this->socket, $data . "\r\n");
 	}
+	
+	// add to queue, order by time-to-send
+	// sort by time-to-send after each insert - slow, but works
+	public function sendQueue($data, $tts) {
+		$this->sendQ[$tts][] = $data;
+		ksort($this->sendQ);
+	}
 
 	// responds to the last incoming source with your text
-	public function reply($text) {
+	public function reply($text, $delay = 0) {
 		if (empty($this->processed['source'])) return;
 		$string = 'PRIVMSG ' . $this->processed['source'] . ' :' . $text;
-		$this->send($string);
+		$tts = time() + $delay;
+		$this->sendQueue($string, $tts);
 	}
 	
 	// directly messages $user with $text
-	public function pm($user, $text) {
+	public function pm($user, $text, $delay = 0) {
 		$string = 'PRIVMSG ' . $user . ' :' . $text;
-		$this->send($string);
+		$tts = time() + $delay;
+		$this->sendQueue($string, $tts);
 	}
 
 	// main loop, should only be called from $this->connect()
 	private function main() {
 		socket_set_blocking($this->socket, false); // so we can do timed events
 		
+		$ticks = $this->config['time_per_tick']; // 'tick' every X seconds to send more data from the sendQ
 		while (!feof($this->socket)) {
 			while (!$incoming = rtrim(fgets($this->socket))) { // check if there's data in the pipes
 				// nope! so, we need to process plugin timers, then continue sleeping for the remainder of our 100ms pause
@@ -147,6 +166,17 @@ class SilverBot {
 				$end = microtime(true);
 				$diff = 100000 - ((($end - $start) * 1000000) * 1.0000005); // add some trial-and-error fuzz
 				if ($diff > 0) usleep($diff);
+				
+				if ($ticks-- < 1) { // 'time_per_tick' seconds have elapsed
+					$ticks = $this->config['time_per_tick'];
+					if (!empty($this->sendQ)) {
+						$key = key($this->sendQ);
+						$this->send(array_shift($this->sendQ[$key])); // send off one line at a time
+						if (empty($this->sendQ[$key])) { // we've emptied this one
+							unset($this->sendQ[$key]); // so remove it from the queue
+						}
+					}
+				}
 			}
 			
 			// looks like we've got data in them-thar pipes
