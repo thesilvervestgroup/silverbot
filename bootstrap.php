@@ -46,6 +46,13 @@ define('DAEMON', ($options['daemon'] == true));
 // load the config items globally
 $config = parse_ini_file($options['config'], true);
 
+// set the timezone
+$timezone = 'UTC';
+if (isset($config['SilverBot']['timezone'])) {
+    $timezone = $config['SilverBot']['timezone'];
+}
+date_default_timezone_set($timezone);
+
 function __autoload($class_name) {
 	// check for a native class first
 	$filename = 'class/'.strtolower($class_name).'.class.php';
